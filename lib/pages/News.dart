@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:koudai_charger/pages/NewsView.dart';
 import 'package:koudai_charger/pages/NewsView_Mk.dart';
 import 'package:koudai_charger/pages/Theme.dart';
+import 'package:koudai_charger/widgets/Loading.dart';
 
 class News extends StatefulWidget {
   const News({Key key, this.data}) : super(key: key); //构造函数中增加参数
@@ -23,6 +24,8 @@ class NewsTab {
 
 NewsData newsmodel1 = new NewsData(title: "1");
 NewsData newsmodel2 = new NewsData(title: "2");
+//加载更多开关
+bool _swch = false;
 
 class _MyTabbedPageState extends State<News>
     with SingleTickerProviderStateMixin {
@@ -100,13 +103,7 @@ class _NewsListState extends State<NewsList>
   void _scrollListener() {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      Container(
-          padding: const EdgeInsets.all(16.0),
-          alignment: Alignment.center,
-          child: SizedBox(
-              width: 24.0,
-              height: 24.0,
-              child: CircularProgressIndicator(strokeWidth: 2.0)));
+      _swch = false;
       _loadMoreData();
     }
   }
@@ -153,33 +150,42 @@ class _NewsListState extends State<NewsList>
 
   Widget buildCardItem(BuildContext context, int index) {
     // final String url = datas[index].url;
-    return Card(
-      margin: EdgeInsets.all(5),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          ListTile(
-            title: Text(datas[index].title),
-            subtitle: Text(
-              datas[index].desc,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 3,
+
+    if (index == datas.length - 1) {
+      return Offstage(
+        child: buildIsLoading(),
+        offstage: _swch,
+      );
+    } else {
+      return Card(
+        margin: EdgeInsets.all(5),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            ListTile(
+              title: Text(datas[index].title),
+              subtitle: Text(
+                datas[index].desc,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 3,
+              ),
+              leading: _generateItem(datas[index].images),
+              onTap: () {
+                Navigator.push(context,
+                    new MaterialPageRoute(builder: (context) {
+                  return NewsViewMkPage(arguments: {
+                    'id': datas[index].sId,
+                    'title': datas[index].title,
+                    'author': datas[index].author,
+                    'createdAt': datas[index].createdAt,
+                  });
+                }));
+              },
             ),
-            leading: _generateItem(datas[index].images),
-            onTap: () {
-              Navigator.push(context, new MaterialPageRoute(builder: (context) {
-                return NewsViewMkPage(arguments: {
-                  'id': datas[index].sId,
-                  'title': datas[index].title,
-                  'author': datas[index].author,
-                  'createdAt': datas[index].createdAt,
-                });
-              }));
-            },
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    }
   }
 
   _generateItem(var value) {
@@ -254,6 +260,9 @@ class _NewsListState extends State<NewsList>
             .toList()
             .length ==
         0) {
+      setState(() {
+        _swch = true;
+      });
       Fluttertoast.showToast(
           msg: "没有更多了",
           toastLength: Toast.LENGTH_LONG,

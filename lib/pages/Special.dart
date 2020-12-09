@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:koudai_charger/entity/photo.dart';
 import 'package:koudai_charger/pages/PhotoView.dart';
 import 'package:koudai_charger/pages/Theme.dart';
+import 'package:koudai_charger/widgets/Loading.dart';
 import 'Home.dart';
 
 class SpecialPage extends StatelessWidget {
@@ -37,6 +39,8 @@ class MeziList extends StatefulWidget {
   }
 }
 
+bool _swch = false;
+
 class MeziSateList extends State<MeziList> {
   List<PhotoData> datas = []; //初始化列表数据源
   int currentpage = 1; //默认当前页
@@ -49,13 +53,7 @@ class MeziSateList extends State<MeziList> {
   void _scrollListener() {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      Container(
-          padding: const EdgeInsets.all(16.0),
-          alignment: Alignment.center,
-          child: SizedBox(
-              width: 24.0,
-              height: 24.0,
-              child: CircularProgressIndicator(strokeWidth: 2.0)));
+      _swch = false;
       _loadMoreData();
     }
   }
@@ -110,18 +108,26 @@ class MeziSateList extends State<MeziList> {
 
   Widget buildCardItem(BuildContext context, int index) {
     final String url = datas[index].url;
-    return new GestureDetector(
-      //点击事件
-      onTap: () {
-        _showPhoto(url);
-      },
-      child: new Card(
-        child: new Container(
-          padding: EdgeInsets.all(10.0),
-          child: new Image.network(url),
+
+    if (index == datas.length - 1) {
+      return Offstage(
+        child: buildIsLoading(),
+        offstage: _swch,
+      );
+    } else {
+      return new GestureDetector(
+        //点击事件
+        onTap: () {
+          _showPhoto(url);
+        },
+        child: new Card(
+          child: new Container(
+            padding: EdgeInsets.all(10.0),
+            child: new Image.network(url),
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   //刷新时调用
@@ -182,6 +188,9 @@ class MeziSateList extends State<MeziList> {
             .toList()
             .length ==
         0) {
+      setState(() {
+        _swch = true;
+      });
       Fluttertoast.showToast(
           msg: "没有更多了",
           toastLength: Toast.LENGTH_LONG,
