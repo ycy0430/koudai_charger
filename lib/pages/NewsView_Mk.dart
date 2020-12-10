@@ -101,32 +101,6 @@ class _NewsvalueState extends State<Newsvalue> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Container(
-        //   decoration: BoxDecoration(
-        //     border: new Border.all(color: Colors.black26, width: 0.5),
-        //   ),
-        //   child: Column(
-        //     children: [
-        //       Text(
-        //         widget.title,
-        //         style: TextStyle(fontSize: 28),
-        //       ),
-        //       Row(
-        //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //         children: [
-        //           Padding(
-        //             padding: EdgeInsets.only(left: 20),
-        //             child: Text(widget.author),
-        //           ),
-        //           Padding(
-        //             padding: EdgeInsets.only(right: 20),
-        //             child: Text(widget.createdAt),
-        //           )
-        //         ],
-        //       ),
-        //     ],
-        //   ),
-        // ),
         Expanded(
           child: Container(
               child: Column(
@@ -140,6 +114,11 @@ class _NewsvalueState extends State<Newsvalue> {
                         data: snapshot.data,
                       );
                     } else {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return Center(
+                          child: Text("当前文章没有Markdown数据！"),
+                        );
+                      }
                       return Center(
                         child: CircularProgressIndicator(
                           backgroundColor: Colors.grey[200],
@@ -184,9 +163,8 @@ class _NewsvalueState extends State<Newsvalue> {
     if (response.statusCode == 200) {
       //响应成功
       result = (response.data)['data'];
-    } else {
-      //出问题
     }
+    // print(result['markdown']);
     return result['markdown'];
   }
 }
